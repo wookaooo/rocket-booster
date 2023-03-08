@@ -52,7 +52,7 @@ test('upstream -> onResponse', async () => {
         (res: Response): Response => {
           res.headers.set('x-bar', 'foo');
           return res;
-        }
+        },
       ],
     },
   });
