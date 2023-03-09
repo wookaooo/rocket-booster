@@ -6,7 +6,7 @@ export const cloneRequest = (
   url: string,
   request: Request,
 ): Request => {
-  const requestInit: CfRequestInit = {
+  const requestInit: RequestInit = {
     body: request.body,
     method: request.method,
     headers: request.headers,
