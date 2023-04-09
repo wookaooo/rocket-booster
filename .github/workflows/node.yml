@@ -1,4 +1,4 @@
-name: Node.js Test and Build
+name: Node.js Build and Test
 
 on:
   push:
@@ -20,22 +20,16 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-
-      - name: Cache dependencies
-        uses: actions/cache@v3
-        with:
-          path: |
-            **/node_modules
-          key: ${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+          cache: npm
 
       - name: Install dependencies
         run: npm install
+
+      - name: Build
+        run: npm run build
 
       - name: Run unit tests and generate coverage report
         run: npm test
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v2
-
-      - name: Build
-        run: npm run build
