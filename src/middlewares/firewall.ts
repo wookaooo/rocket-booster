@@ -1,10 +1,10 @@
+import { Middleware } from '../../types/middleware';
 import {
   FirewallField,
   FirewallOperator,
   FirewallHandler,
   FirewallOptions,
 } from '../../types/middlewares/firewall';
-import { Middleware } from '../../types/middleware';
 
 const fields: Set<FirewallField> = new Set([
   'country',

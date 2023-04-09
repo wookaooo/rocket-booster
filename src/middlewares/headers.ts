@@ -31,16 +31,9 @@ export const useHeaders: Middleware = async (
   next,
 ) => {
   const { request, route } = context;
-
-  const requestHeaders = new Headers(request.headers);
-  setForwardedHeaders(requestHeaders);
+  setForwardedHeaders(request.headers);
 
   if (route.headers === undefined) {
-    context.request = new Request(request.url, {
-      body: request.body,
-      method: request.method,
-      headers: requestHeaders,
-    });
     await next();
     return;
   }
@@ -48,40 +41,23 @@ export const useHeaders: Middleware = async (
   if (route.headers.request !== undefined) {
     for (const [key, value] of Object.entries(route.headers.request)) {
       if (value.length === 0) {
-        requestHeaders.delete(key);
+        request.headers.delete(key);
       } else {
-        requestHeaders.set(key, value);
+        request.headers.set(key, value);
       }
     }
   }
-
-  context.request = new Request(request.url, {
-    body: request.body,
-    method: request.method,
-    headers: requestHeaders,
-  });
 
   await next();
 
   const { response } = context;
-  const responseHeaders = new Headers(response.headers);
-
   if (route.headers.response !== undefined) {
     for (const [key, value] of Object.entries(route.headers.response)) {
       if (value.length === 0) {
-        responseHeaders.delete(key);
+        response.headers.delete(key);
       } else {
-        responseHeaders.set(key, value);
+        response.headers.set(key, value);
       }
     }
   }
-
-  context.response = new Response(
-    response.body,
-    {
-      status: response.status,
-      statusText: response.statusText,
-      headers: responseHeaders,
-    },
-  );
 };

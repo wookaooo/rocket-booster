@@ -1,4 +1,5 @@
 import { test, expect } from 'vitest';
+
 import useReflare from '../../src';
 
 interface HTTPBinGetResponse {
@@ -18,7 +19,7 @@ const request = new Request(
   },
 );
 
-test('headers.ts -> X-Forwarded headers', async () => {
+test('headers.ts -> set \'X-Forwarded-*\' headers', async () => {
   const reflare = await useReflare();
 
   reflare.push({
@@ -32,7 +33,7 @@ test('headers.ts -> X-Forwarded headers', async () => {
   expect(requestInfo.origin).toMatch(/(1.1.1.1)/i);
 });
 
-test('headers.ts -> request header', async () => {
+test('headers.ts -> set request headers', async () => {
   const reflare = await useReflare();
 
   reflare.push({
@@ -40,9 +41,9 @@ test('headers.ts -> request header', async () => {
     upstream: { domain: 'httpbin.org' },
     headers: {
       request: {
-        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Cache-Control': 'max-age=100',
+        accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'accept-encoding': 'gzip, deflate, br',
+        'cache-control': 'max-age=100',
       },
       response: {
         'x-response-header': 'Hello from reflare',
@@ -58,21 +59,21 @@ test('headers.ts -> request header', async () => {
   expect(requestInfo.headers['Cache-Control']).toMatch('max-age=100');
 });
 
-test('headers.ts -> response header', async () => {
+test('headers.ts -> set response headers', async () => {
   const reflare = await useReflare();
   reflare.push({
     path: '/*',
     upstream: { domain: 'httpbin.org' },
     headers: {
       request: {
-        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Cache-Control': 'max-age=100',
+        accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'accept-encoding': 'gzip, deflate, br',
+        'cache-control': 'max-age=100',
       },
       response: {
         'x-response-header': 'Hello from reflare',
-        Connection: 'keep-alive',
-        'Content-Type': 'application/json',
+        connection: 'keep-alive',
+        'content-type': 'application/json',
       },
     },
   });
@@ -84,7 +85,7 @@ test('headers.ts -> response header', async () => {
   expect(response.headers.get('content-type')).toMatch('application/json');
 });
 
-test('headers.ts -> delete request header', async () => {
+test('headers.ts -> delete request headers', async () => {
   const reflare = await useReflare();
 
   reflare.push({
@@ -95,8 +96,8 @@ test('headers.ts -> delete request header', async () => {
         'X-Forwarded-Proto': '',
         'X-Forwarded-For': '',
         'X-Forwarded-Host': '',
-        'User-Agent': '',
-        'Header-Not-Exist': '',
+        'user-agent': '',
+        'test-header': '',
       },
     },
   });
@@ -106,11 +107,11 @@ test('headers.ts -> delete request header', async () => {
   expect(requestInfo.headers['X-Forwarded-For']).toBeUndefined();
   expect(requestInfo.headers['X-Forwarded-Host']).toBeUndefined();
   expect(requestInfo.headers['X-Forwarded-Proto']).toBeUndefined();
-  expect(requestInfo.headers['User-Agent']).toBeUndefined();
-  expect(requestInfo.headers['Header-Not-Exist']).toBeUndefined();
+  expect(requestInfo.headers['user-agent']).toBeUndefined();
+  expect(requestInfo.headers['test-header']).toBeUndefined();
 });
 
-test('headers.ts -> delete response header', async () => {
+test('headers.ts -> delete response headers', async () => {
   const reflare = await useReflare();
 
   reflare.push({
@@ -118,15 +119,15 @@ test('headers.ts -> delete response header', async () => {
     upstream: { domain: 'httpbin.org' },
     headers: {
       response: {
-        Server: '',
-        'Content-Type': '',
-        'Header-Not-Exist': '',
+        server: '',
+        'content-type': '',
+        'test-header': '',
       },
     },
   });
 
   const response = await reflare.handle(request);
-  expect(response.headers.has('Server')).toBeFalsy();
-  expect(response.headers.has('Content-Type')).toBeFalsy();
-  expect(response.headers.has('Header-Not-Exist')).toBeFalsy();
+  expect(response.headers.has('server')).toBeFalsy();
+  expect(response.headers.has('content-type')).toBeFalsy();
+  expect(response.headers.has('test-header')).toBeFalsy();
 });
