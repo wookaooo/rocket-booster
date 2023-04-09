@@ -57,11 +57,11 @@ export const getFieldParam = (
   const cfProperties = request.cf;
   switch (field) {
     case 'asn':
-      return cfProperties?.asn;
+      return cfProperties?.asn as number;
     case 'continent':
-      return cfProperties && 'continent' in cfProperties ? cfProperties.continent : '';
+      return cfProperties?.continent as string;
     case 'country':
-      return cfProperties && 'country' in cfProperties ? cfProperties.country : '';
+      return cfProperties?.country as string;
     case 'hostname':
       return request.headers.get('host') || '';
     case 'ip':
