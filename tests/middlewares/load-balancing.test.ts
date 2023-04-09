@@ -1,3 +1,4 @@
+import { test, expect } from 'vitest';
 import useReflare from '../../src';
 import { UpstreamOptions } from '../../types/middlewares';
 

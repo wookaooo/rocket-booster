@@ -1,3 +1,4 @@
+import { test, expect } from 'vitest';
 import useReflare from '../../src';
 
 interface HTTPBinGetResponse {
@@ -26,7 +27,7 @@ test('headers.ts -> X-Forwarded headers', async () => {
   });
 
   const response = await reflare.handle(request);
-  const requestInfo = await response.json<HTTPBinGetResponse>();
+  const requestInfo = await response.json() as HTTPBinGetResponse;
   expect(requestInfo.headers['X-Forwarded-Host']).toMatch('github.com');
   expect(requestInfo.origin).toMatch(/(1.1.1.1)/i);
 });
@@ -50,7 +51,7 @@ test('headers.ts -> request header', async () => {
   });
 
   const response = await reflare.handle(request);
-  const requestInfo = await response.json<HTTPBinGetResponse>();
+  const requestInfo = await response.json() as HTTPBinGetResponse;
   expect(requestInfo.headers['Accept-Encoding']).toMatch('gzip, deflate, br');
   expect(requestInfo.headers.Accept)
     .toMatch('text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8');
@@ -101,7 +102,7 @@ test('headers.ts -> delete request header', async () => {
   });
 
   const response = await reflare.handle(request);
-  const requestInfo = await response.json<HTTPBinGetResponse>();
+  const requestInfo = await response.json() as HTTPBinGetResponse;
   expect(requestInfo.headers['X-Forwarded-For']).toBeUndefined();
   expect(requestInfo.headers['X-Forwarded-Host']).toBeUndefined();
   expect(requestInfo.headers['X-Forwarded-Proto']).toBeUndefined();

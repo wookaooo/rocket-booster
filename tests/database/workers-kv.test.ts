@@ -1,3 +1,4 @@
+import { test, expect } from 'vitest';
 import { WorkersKV } from '../../src/database';
 
 declare const TEST_NAMESPACE: KVNamespace;
