@@ -89,7 +89,7 @@ const useReflare = async (
     }
 
     const context: Context = {
-      request: request.clone(),
+      request: new Request(request),
       route,
       hostname: getHostname(request),
       response: new Response('Unhandled response'),
