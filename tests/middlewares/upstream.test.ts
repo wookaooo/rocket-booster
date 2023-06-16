@@ -75,3 +75,32 @@ test('upstream.ts -> with collection of paths', async () => {
   expect(response.status).toBe(200);
   expect(response.url).toBe('https://httpbingo.org/get');
 });
+
+test('upstream.ts -> with domain', async () => {
+  const request = new Request('https://example.com/get');
+
+  const reflare = await useReflare();
+  reflare.push({
+    domain: 'example.com',
+    path: '/*',
+    upstream: { domain: 'httpbingo.org' },
+  });
+
+  const response = await reflare.handle(request);
+  expect(response.status).toBe(200);
+  expect(response.url).toBe('https://httpbingo.org/get');
+});
+
+test('upstream.ts -> no matched domain', async () => {
+  const request = new Request('https://localhost/get');
+
+  const reflare = await useReflare();
+  reflare.push({
+    domain: 'example.com',
+    path: '/*',
+    upstream: { domain: 'httpbingo.org' },
+  });
+
+  const response = await reflare.handle(request);
+  expect(response.status).toBe(500);
+});

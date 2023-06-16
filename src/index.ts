@@ -23,6 +23,23 @@ const filter = (
   const url = new URL(request.url);
 
   for (const route of routeList) {
+    if (route.domain) {
+      const matchDomain = castToIterable<string>(route.domain).some((domain) => {
+        const re = RegExp(
+          `^${domain
+            .replace(/(\/?)\*/g, '($1.*)?')
+            .replace(/\/$/, '')
+            .replace(/:(\w+)(\?)?(\.)?/g, '$2(?<$1>[^/]+)$2$3')
+            .replace(/\.(?=[\w(])/, '\\.')
+            .replace(/\)\.\?\(([^[]+)\[\^/g, '?)\\.?($1(?<=\\.)[^\\.')}/*$`,
+        );
+        return url.hostname.match(re);
+      });
+      if (!matchDomain) {
+        // eslint-disable-next-line no-continue
+        continue;
+      }
+    }
     if (route.methods === undefined || route.methods.includes(request.method)) {
       const match = castToIterable<string>(route.path).some((path) => {
         const re = RegExp(
