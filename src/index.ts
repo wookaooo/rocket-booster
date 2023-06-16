@@ -24,7 +24,7 @@ const filter = (
 
   for (const route of routeList) {
     if (route.domain) {
-      const matchDomain = castToIterable<string>(route.domain).some((domain) => {
+      const match = castToIterable<string>(route.domain).some((domain) => {
         const re = RegExp(
           `^${domain
             .replace(/(\/?)\*/g, '($1.*)?')
@@ -35,11 +35,11 @@ const filter = (
         );
         return url.hostname.match(re);
       });
-      if (!matchDomain) {
-        // eslint-disable-next-line no-continue
+      if (!match) {
         continue;
       }
     }
+
     if (route.methods === undefined || route.methods.includes(request.method)) {
       const match = castToIterable<string>(route.path).some((path) => {
         const re = RegExp(
@@ -50,10 +50,8 @@ const filter = (
             .replace(/\.(?=[\w(])/, '\\.')
             .replace(/\)\.\?\(([^[]+)\[\^/g, '?)\\.?($1(?<=\\.)[^\\.')}/*$`,
         );
-
         return url.pathname.match(re);
       });
-
       if (match) {
         return route;
       }
