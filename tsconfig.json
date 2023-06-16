@@ -1,17 +1,14 @@
 {
   "compilerOptions": {
-    "outDir": "./dist",
-    "module": "ES2020",
-    "target": "ES2020",
-    "moduleResolution": "node",
+    "outDir": "dist",
+    "module": "ESNext",
+    "target": "ESNext",
+    "moduleResolution": "Node",
     "lib": [
-      "ES2021",
-      "WebWorker"
+      "ESNext"
     ],
     "types": [
-      "jest",
-      "service-worker-mock",
-      "@cloudflare/workers-types"
+      "@cloudflare/workers-types",
     ],
     "allowJs": false,
     "alwaysStrict": true,
@@ -25,18 +22,11 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "forceConsistentCasingInFileNames": true,
-    "suppressImplicitAnyIndexErrors": true,
     "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true
   },
   "include": [
-    "src/*.ts",
     "src/**/*.ts",
-    "test/*.ts",
-    "node_modules/@cloudflare/workers-types/index.d.ts"
-  ],
-  "exclude": [
-    "node_modules/",
-    "dist/"
+    "types/**/*.ts"
   ]
 }

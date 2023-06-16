@@ -1,149 +1,156 @@
-![Header](https://raw.githubusercontent.com/booster-labs/rocket-booster/master/.github/img/header.jpg)
+![Header](https://raw.githubusercontent.com/xiaoyang-sde/reflare/master/.github/img/header.jpg)
 
 <div align="center">
 
-[![GitHub Actions](https://img.shields.io/github/workflow/status/booster-labs/rocket-booster/Node.js%20Test%20and%20Build?style=for-the-badge&logo=github)](https://github.com/booster-labs/rocket-booster/actions)
-[![Codecov Coverage](https://img.shields.io/codecov/c/github/booster-labs/rocket-booster?style=for-the-badge&logo=codecov)](https://app.codecov.io/gh/booster-labs/rocket-booster/)
-[![Package version](https://img.shields.io/npm/v/rocket-booster?style=for-the-badge&logo=npm&color=red)](https://www.npmjs.com/package/rocket-booster)
-[![Bundle size](https://img.shields.io/bundlephobia/min/rocket-booster?style=for-the-badge&logo=webpack)](https://www.npmjs.com/package/rocket-booster)
+[![GitHub Actions](https://img.shields.io/github/actions/workflow/status/xiaoyang-sde/reflare/node.yml?branch=master&style=for-the-badge&logo=github)](https://github.com/xiaoyang-sde/reflare/actions)
+[![Codecov Coverage](https://img.shields.io/codecov/c/github/xiaoyang-sde/reflare?style=for-the-badge&logo=codecov)](https://app.codecov.io/gh/xiaoyang-sde/reflare/)
+[![Package Version](https://img.shields.io/npm/v/reflare?style=for-the-badge&logo=npm&color=red)](https://www.npmjs.com/package/reflare)
+[![Download Statistics](https://img.shields.io/npm/dt/reflare?style=for-the-badge&logo=npm&color=blue)](https://www.npmjs.com/package/reflare)
 
 [![forthebadge](https://forthebadge.com/images/badges/made-with-typescript.svg)](https://forthebadge.com)
 [![forthebadge](https://forthebadge.com/images/badges/ctrl-c-ctrl-v.svg)](https://forthebadge.com)
 [![forthebadge](https://forthebadge.com/images/badges/built-with-love.svg)](https://forthebadge.com)
 
-[📦 Releases](https://github.com/booster-labs/rocket-booster/releases) |
-[📔 Examples](#-examples) |
-[⚙️ Options](#-options) |
-[🌎 Contributing](#-contributing)
+[📦 Releases](https://github.com/xiaoyang-sde/reflare/releases) |
+[📔 Examples](#examples) |
+[⚙️ Route Definition](#route-definition) |
+[☕ Buy Me a Coffee](https://www.buymeacoffee.com/xiaoyang.liu)
 </div>
 
-🚀 **rocket-booster** is a lightweight and scalable reverse proxy and load balancing library built for [Cloudflare Workers](https://workers.cloudflare.com). It sits in front of web servers (e.g. web application, storage platform, or RESTful API), forwards HTTP requests or WebSocket traffics from clients to upstream servers and transforms responses with several optimizations to improve page loading time.
+🚀 **Reflare** is a lightweight and scalable reverse proxy and load balancing library built for [Cloudflare Workers](https://workers.cloudflare.com). It sits in front of web servers (e.g. web application, storage platform, or RESTful API), forwards HTTP requests or WebSocket traffics from clients to upstream servers, and transforms responses with several optimizations to improve page loading time.
 
-- ⚡ Serverless: Deploy instantly to the auto-scaling serverless platform built by Cloudflare. No virtual machines, servers, or containers to manage.
-- ✈️ Load Balancing: Distribute incoming traffics evenly among different upstream services.
-- ⚙️ Hackable: Deliver unique content based on visitor attributes, conduct A/B testing, or build custom middleware to hook into the lifecycle. (Experimental)
-- 📄 TypeScript: Extensive type declaration with TSDoc.
+- ⚡ Serverless: Publish instantly to the auto-scaling serverless platform built by Cloudflare. There's no need to manage virtual machines or containers.
+- ✈️ Load Balancing: Distribute incoming traffics among different upstream services.
+- ⚙️ Hackable: Deliver unique content based on visitor attributes, conduct A/B testing, or build middlewares to hook into the lifecycle. (Experimental)
+- 🛳️ Dynamic Route Definition (Experimental): Store and update route definitions with Workers KV to avoid redundant redeployment.
 
-## 📦 Build and Deploy
+## Installation
 
-### Start with templates
+### Start with `reflare-template`
 
-- [Install Wrangler CLI](https://github.com/cloudflare/wrangler#installation) and generate a project from the [rocket-booster-template](https://github.com/booster-labs/rocket-booster-template)
+- Generate a new project from [reflare-template](https://github.com/xiaoyang-sde/reflare-template) and install the dependencies.
 
-```sh
-npm install -g @cloudflare/wrangler
-
-wrangler generate booster-app https://github.com/booster-labs/rocket-booster-template
-```
-
-- Install dependencies and edit the options in `src/index.ts`
-
-```sh
-cd booster-app
-
+```console
+npm init cloudflare reflare-app https://github.com/xiaoyang-sde/reflare-template
+cd reflare-app
 npm install
 ```
 
-- Login and publish to Cloudflare Workers
+- Authenticate `wrangler` with a Cloudflare account.
 
-```sh
-wrangler login
-
-wrangler publish
+```console
+npx wrangler login
 ```
+
+- Edit or add route definitions in `src/index.ts`. Please read the examples and the documentation below for more details.
+
+- Run `npm run dev` to preview Reflare with a local development server.
+
+- Run `npm run publish` to publish Reflare on Cloudflare Workers.
 
 ### Integrate with existing project
 
-- Install the `rocket-booster` package
+- Install the `reflare` package.
 
 ```console
-npm install --save rocket-booster
+npm install reflare
 ```
 
-- Import the `useProxy` function from `rocket-booster`. The function returns an object with the `use()` method, which maps route patterns to configuration objects, and `apply()` method, which takes the inbound [Request](https://developers.cloudflare.com/workers/runtime-apis/request) to the Worker, and returns the [Response](https://developers.cloudflare.com/workers/runtime-apis/request) fetched from the upstream service.
+Import `useReflare` from `reflare`. `useReflare` accepts these options:
+
+- `provider`: The location of the list of route definitions. (optional, defaults to `static`)
+  - `static`: Reflare loads the route definitions from `routeList`.
+  - `kv`: Reflare loads the route definitions from [Workers KV](https://developers.cloudflare.com/workers/learning/how-kv-works). (Experimental)
+- `routeList`: The initial list of route definitions. (optional, defaults to `[]`, **ignored if `provider` is not `static`**)
+- `namespace`: The Workers KV namespace that stores the list of route definitions. (**required if `provider` is `kv`**)
+
+`useReflare` returns an object with the `handle` method and `push` method.
+
+- The `handle` method takes the inbound [Request](https://developers.cloudflare.com/workers/runtime-apis/request) to the Worker and returns the [Response](https://developers.cloudflare.com/workers/runtime-apis/request) fetched from the upstream service.
+- The `push` method takes a route and appends it to `routeList`.
 
 ```ts
-import useProxy from 'rocket-booster';
+import useReflare from 'reflare';
 
-addEventListener('fetch', (event) => {
-  const proxy = useProxy();
-  proxy.use('/', {
-    upstream: {
-      domain:  'example.com',
-      protocol: 'https',
-    },
-  });
+export default {
+  async fetch(
+    request: Request,
+  ): Promise<Response> {
+    const reflare = await useReflare();
 
-  const response = proxy.apply(event.request);
-  event.respondWith(response);
-});
+    reflare.push({
+      path: '/*',
+      upstream: {
+        domain: 'httpbin.org',
+        protocol: 'https',
+      },
+    });
+
+    return reflare.handle(request);
+  },
+};
 ```
 
-- Edit the options object to change the request and response. For example, the options below will add the header `Access-Control-Allow-Origin: *` to each response from the upstream service, which allows any origin to access the service.
+Edit the route definition to change the behavior of Reflare. For example, the route definition below lets Reflare add the `access-control-allow-origin: *` header to each response from the upstream service.
 
 ```ts
-proxy.use('/', {
+{
+  path: '/*',
   upstream: {
-    domain:  'example.com',
+    domain: 'httpbin.org',
     protocol: 'https',
   },
   cors: {
     origin: '*',
   },
-});
+}
 ```
 
-- Build and publish to Cloudflare Workers
+## Examples
 
-```sh
-wrangler build
-wrangler publish
-```
+### Mirror of MDN Web Docs
 
-## 📔 Examples
-
-### MDN Web Docs Mirror
-
-Set up a reverse proxy for [https://developer.mozilla.org](https://developer.mozilla.org):
+Set up a reverse proxy for [MDN Web Docs](https://developer.mozilla.org):
 
 ```ts
-proxy.use('/', {
+{
+  path: '/*',
   upstream: {
     domain: 'developer.mozilla.org',
     protocol: 'https',
   },
-});
+}
 ```
 
-[Live Demo](https://mozilla.readme.workers.dev/)
+### WebSocket
 
-### WebSocket Proxy
-
-`rocket-booster` could proxy WebSocket traffic to upstream services. Set up a reverse proxy for [wss://echo.websocket.org](wss://echo.websocket.org):
+Set up a reverse proxy for [wss://echo.websocket.org](wss://echo.websocket.org):
 
 ```ts
-proxy.use('/', {
+{
+  path: '/*',
   upstream: {
     domain: 'echo.websocket.org',
     protocol: 'https',
   },
-});
+}
 ```
 
-### S3 Bucket with custom response behavior
+### S3 Bucket
 
-`rocket-booster` could set custom headers to request and response, add CORS header, or add basic authentication. Set up a reverse proxy for [https://example.s3.amazonaws.com](https://example.s3.amazonaws.com):
+Set up a reverse proxy for [https://example.s3.amazonaws.com](https://example.s3.amazonaws.com) and add custom headers to the response:
 
 ```ts
-proxy.use('/', {
+{
+  path: '/*',
   upstream: {
     domain: 'example.s3.amazonaws.com',
     protocol: 'https',
   },
 
-  header: {
+  headers: {
     response: {
-      'x-response-header': 'Hello from rocket-booster',
+      'x-response-header': 'Hello from Reflare',
     },
   },
 
@@ -152,46 +159,95 @@ proxy.use('/', {
     methods: ['GET', 'POST'],
     credentials: true,
   },
-});
+}
 ```
 
-## ⚙️ Options
+## Route Definition
 
-### Routing
+### Route Matching
 
-The `proxy` object provides a `use` function that maps URL patterns to different options. The options object has an optional `methods` property that accepts a list of HTTP methods, which specifies the request methods the route will handle.
+Reflare implements express-like route matching. Reflare matches the path and HTTP method of each incoming request with the list of route definitions and forwards the request to the first matched route.
+
+- `domain` (`string | string[]`): The domain name or the list of domain names that matches the domain name in the incoming request's URL
+- `path` (`string | string[]`): The path or the list of paths that matches the route
+- `methods` (`string[]`): The list of HTTP methods that match the route
 
 ```ts
 // Matches all requests
-proxy.use('/', { /* ... */ });
+reflare.push({
+  path: '/*',
+  /* ... */
+});
 
-// Matches GET and POST requests with path starting with `/api`
-proxy.use('/api', {
+// Matches all requests that are accessing the Cloudflare Workers instance
+// through `template.reflare.workers.dev`
+reflare.push({
+  domain: 'template.reflare.workers.dev',
+  path: '/*',
+  /* ... */
+});
+
+// Matches GET and POST requests with path `/api`
+reflare.push({
+  path: '/api',
   methods: ['GET', 'POST'],
 });
 
-// Matches GET requests with path ending with `.json` in `/data`
-proxy.use('/data/*.json', {
+// Matches GET requests with path ending with `.json` or `.yaml` in `/data`
+reflare.push({
+  path: ['/data/*.json', '/data/*.yaml'],
   methods: ['GET'],
 });
 ```
 
 ### Upstream
 
-- `domain`: The domain name of the upstream server.
-- `protocol`: The protocol scheme of the upstream server. (optional, defaults to `'https'`)
-- `port`: The port of the upstream server. (optional, defaults to `80` or `443` based on `protocol`)
-- `timeout`: The maximum wait time on a request to the upstream server. (optional, defaults to `10000`)
-- `weight`: The weight of the server that will be accounted as part of the load balancing decision. (optional, defaults to `1`)
+- `domain` (`string`): The domain name of the upstream server
+- `protocol` (`string`): The protocol scheme of the upstream server (optional, defaults to `'https'`)
+- `port` (`number`): The port of the upstream server (optional, defaults to `80` or `443` based on `protocol`)
+- `timeout` (`number`): The maximum wait time on a request to the upstream server (optional, defaults to `10000`)
+- `weight` (`number`): The weight of the server that will be accounted for as part of the load balancing decision (optional, defaults to `1`)
+- `onRequest(request: Request, url: string)`: The callback function that will be called before sending the request to upstream
+- `onResponse(response: Response, url: string)`: The callback function that will be called after receiving the response from upstream
 
 ```ts
-proxy.use('/', {
+reflare.push({
+  path: '/*',
   upstream: {
     domain: 'httpbin.org',
     protocol: 'https',
     port: 443,
     timeout: 10000,
     weight: 1,
+  },
+  /* ... */
+});
+```
+
+The `onRequest` and `onResponse` fields accept callback functions that could change the content of the request or response. For example, the following example replaces the URL of the request and sets the `cache-control` header of the response based on its URL. These fields accept either a standalone function or a list of functions. The function could be either `async` or non-`async`.
+
+```ts
+reflare.push({
+  path: '/*',
+  upstream: {
+    domain: 'httpbin.org',
+    protocol: 'https',
+    port: 443,
+    timeout: 10000,
+    weight: 1,
+
+    onRequest: (request: Request, url: string): Request => {
+      // Modifies the URL of the request
+      return new Request(url.replace('/original/request/path', ''), request);
+    },
+
+    onResponse: (response: Response, url: string): Response => {
+      // If the URL ends with `.html` or `/`, sets the `cache-control` header
+      if (url.endsWith('.html') || url.endsWith('/')) {
+        response.headers.set('cache-control', 'public, max-age=240, s-maxage=60');
+      }
+      return response;
+    }
   },
   /* ... */
 });
@@ -205,7 +261,8 @@ To load balance HTTP traffic to a group of servers, pass an array of server conf
 - `ip-hash`: The client's IP address is used as a hashing key to select the upstream server from the server group. It ensures that the requests from the same client will always be directed to the same server.
 
 ```ts
-proxy.use('/', {
+reflare.push({
+  path: '/*',
   loadBalancing: {
     policy: 'random',
   },
@@ -235,13 +292,13 @@ proxy.use('/', {
 Each incoming request is inspected against the firewall rules defined in the `firewall` property of the options object. The request will be blocked if it matches at least one firewall rule.
 
 - `field`: The property of the incoming request to be inspected
-  - `asn`: The ASN number of the incoming request. (`number`)
-  - `ip`: The IP address of the incoming request, e.g. `1.1.1.1`. (`string`)
-  - `hostname`: The content of the `host` header, e.g. `github.com`. (`string | undefined`)
-  - `user-agent`: The content of the `user-agent` header, e.g. `Mozilla/5.0`. (`string | undefined`)
-  - `country`: The two-letter country code in the request, e.g. `US`. (`string | undefined`)
-  - `continent`: The continent of the incoming request, e.g. `NA`. (`string | undefined`)
-- `value`: The value of the firewall rule
+  - `asn`: The ASN number of the incoming request (`number`)
+  - `ip`: The IP address of the incoming request, e.g. `1.1.1.1` (`string`)
+  - `hostname`: The content of the `host` header, e.g. `github.com` (`string | undefined`)
+  - `user-agent`: The content of the `user-agent` header, e.g. `Mozilla/5.0` (`string | undefined`)
+  - `country`: The two-letter country code in the request, e.g. `US` (`string | undefined`)
+  - `continent`: The continent of the incoming request, e.g. `NA` (`string | undefined`)
+- `value` (`string | string[] | number | number[] | RegExp`): The value of the firewall rule
 - `operator`: The operator to be used to determine if the request is blocked
   - `equal`: Block the request if `field` is equal to `value`
   - `not equal`: Block the request if `field` is not equal to `value`
@@ -255,7 +312,8 @@ Each incoming request is inspected against the firewall rules defined in the `fi
   - `less`: Block the request if `field` is less than `value` (Expect `field` and `value` to be `number`)
 
 ```ts
-proxy.use('/', {
+reflare.push('/', {
+  path: '/*',
   /* ... */
   firewall: [
     {
@@ -272,28 +330,14 @@ proxy.use('/', {
 });
 ```
 
-### Rewrite
-
-- `location`: Rewrite the `location` header for responses with 3xx or 201 status if exists. (optional, defaults to `false`)
-
-```ts
-proxy.use('/', {
-  /* ... */
-  rewrite: {
-    path: {
-      '/api/user': '/user'
-    },
-  },
-});
-```
-
 ### Headers
 
-- `request`: Sets request header going upstream to the backend. Accepts an object. (optional, defaults to `{}`)
-- `response`: Sets response header coming downstream to the client. Accepts an object. (optional, defaults to `{}`)
+- `request` (`Record<string, string>`): Sets request header going upstream to the backend. Accepts an object. (optional, defaults to `{}`)
+- `response` (`Record<string, string>`): Sets response header coming downstream to the client. Accepts an object. (optional, defaults to `{}`)
 
 ```ts
-proxy.use('/', {
+reflare.push({
+  path: '/*',
   /* ... */
   headers: {
     request: {
@@ -313,18 +357,19 @@ proxy.use('/', {
   - `string[]`: an array of acceptable origins.
   - `*`: allow any origin to access the resource.
 
-- `methods`: Configures the `Access-Control-Allow-Methods` CORS header. Expects an array of valid HTTP methods or `*`. (optional, defaults to reflecting the method specified in the request’s `Access-Control-Request-Method` header)
+- `methods` (`string[]`): Configures the `Access-Control-Allow-Methods` CORS header. Expect an array of valid HTTP methods or `*`. (optional, defaults to reflecting the method specified in the request’s `Access-Control-Request-Method` header)
 
-- `allowedHeaders`: Configures the `Access-Control-Allow-Headers` CORS header. Expects an array of HTTP headers or *. (optional, defaults to reflecting the headers specified in the request’s `Access-Control-Request-Headers` header.)
+- `allowedHeaders` (`string[]`): Configures the `Access-Control-Allow-Headers` CORS header. Expect an array of HTTP headers or *. (optional, defaults to reflecting the headers specified in the request’s `Access-Control-Request-Headers` header.)
 
-- `exposedHeaders`: Configures the `Access-Control-Expose-Headers` CORS header. Expects an array of HTTP headers or `*`. (optional, defaults to `[]`)
+- `exposedHeaders` (`string[]`): Configures the `Access-Control-Expose-Headers` CORS header. Expect an array of HTTP headers or `*`. (optional, defaults to `[]`)
 
-- `credentials`: Configures the `Access-Control-Allow-Credentials` CORS header. Set to true to pass the header, otherwise it is omitted. (optional, defaults to `false`)
+- `credentials` (`boolean`): Configures the `Access-Control-Allow-Credentials` CORS header. Set to true to pass the header, or it is omitted. (optional, defaults to `false`)
 
-- `maxAge`: Configures the `Access-Control-Max-Age` CORS header. Set to an integer to pass the header, otherwise it is omitted. (optional)
+- `maxAge` (`number`): Configures the `Access-Control-Max-Age` CORS header. Set to an integer to pass the header, or it is omitted. (optional)
 
 ```ts
-proxy.use('/', {
+reflare.push({
+  path: '/*',
   /* ... */
   cors: {
     origin: true,
@@ -332,10 +377,10 @@ proxy.use('/', {
       'GET',
       'POST',
     ],
-    allowHeaders: [
+    allowedHeaders: [
       'Example-Header',
     ],
-    exposeHeaders: [
+    exposedHeaders: [
       'Example-Header',
     ],
     credentials: true,
@@ -344,19 +389,35 @@ proxy.use('/', {
 });
 ```
 
-### Optimization
+## 🛳️ Dynamic Route Definition (Experimental)
 
-Cloudflare Workers provides several optimization by default.
+Reflare could load the route definitions from Workers KV. Set the `provider` to `kv` and `namespace` to a Workers KV namespace (e.g. `REFLARE`) that binds to the current Worker. Reflare fetches the route definitions from `namespace` and handles each incoming request with the latest route definitions.
 
-- [Brotli](https://brotli.org/): Speed up page load times for visitor’s HTTPS traffic by applying Brotli compression.
-- [HTTP/2](https://developers.google.com/web/fundamentals/performance/http2): Improve page load time by connection multiplexing, header compression, and server push.
-- [HTTP/3 with QUIC](https://en.wikipedia.org/wiki/HTTP/3): Accelerate HTTP requests by using QUIC, which provides encryption and performance improvements compared to TCP and TLS.
-- [0-RTT Connection Resumption](https://blog.cloudflare.com/introducing-0-rtt/): Improve performance for clients who have previously connected to the website.
+```ts
+import useReflare from 'reflare';
 
-## 🌎 Contributing
+declare const REFLARE: KVNamespace;
 
-- **Request a feature**: Create an issue with the **Feature request** template.
-- **Report bugs**: Create an issue with the **Bug report** template.
-- **Add new feature or fix bugs**: Fork this repository, edit code, and send a pull request.
+export default {
+  async fetch(
+    request: Request,
+  ): Promise<Response> {
+    const reflare = await useReflare({
+      provider: 'kv',
+      namespace: REFLARE,
+    });
 
-[![Contributors](https://contributors-img.web.app/image?repo=rocket-booster/rocket-booster)](https://github.com/rocket-booster/rocket-booster/graphs/contributors)
+    return reflare.handle(request);
+  },
+};
+```
+
+The route definitions should be stored as a JSON array in the `route-list` key of `namespace`. The KV namespace could be modified with [`wrangler`](https://developers.cloudflare.com/workers/cli-wrangler/commands#kvkey) or [Cloudflare API](https://api.cloudflare.com/#workers-kv-namespace-write-key-value-pair).
+
+```console
+wrangler kv:key put --binding=[namespace] 'route-list' '[{"path":"/*","upstream":{"domain":"httpbin.org","protocol":"https"}}]'
+```
+
+## Contributors
+
+[![Contributors](https://contrib.rocks/image?repo=xiaoyang-sde/reflare)](https://github.com/xiaoyang-sde/reflare/graphs/contributors)
